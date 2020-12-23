@@ -1,0 +1,55 @@
+#list
+list1 <-  list("a", "b", "c", "d", c(1,2, 3,4),TRUE, FALSE )
+list1
+
+A <- c(2, 7, 8)
+B <- c("A", "B", "C")
+C <- c(TRUE, FALSE)
+list2 <- list(A,B,C)
+list2
+
+a <- list("a"=1, "b"=2, "c"=3)
+a 
+
+x <- list(10, 20, 30)
+x
+
+y <- list("Day1", "Day2", "Day3")
+y
+
+names(x)  <- y
+x
+
+names(x)  <- y
+x
+
+
+list3 <- c("a", "b", "c", "d", "e", "f", "g", "h", "i", "j")
+
+list3[1:5]
+
+ 
+#matx 
+matx <- matrix(1:20, nrow = 5, ncol = 5, byrow = FALSE)
+matx
+
+#dataframe
+df1 <- 1:10
+df2 <- c("a", "b", "c", "d", "e", "f", "g", "h", "i", "j")
+df <- data.frame(df1, df2)
+df
+str(df)
+
+df1 <- as.factor(df1)
+df <- data.frame(df1, df2)
+df
+str(df)
+
+
+list5 <- list(a=c(1:10), b=c("a", "b", "c", "d", "e", "f", "g", "h", "i", "j"), c=(TRUE: FALSE) )
+list5
+list5$a
+list5[[1]]
+list5$b
+list5[[3]]
+list5[[2]]

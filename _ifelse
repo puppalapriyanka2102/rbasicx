@@ -1,0 +1,13 @@
+#ifelse
+ifelse(sqrt(9)<2,sqrt(9),0)
+
+
+q <- 10
+if(is.numeric(q)) 
+  y=q*2
+y
+
+char1 <- "Hello"
+if(is.character(char1)) 
+  ch=c(char1,"World" ) 
+ch

@@ -1,0 +1,31 @@
+#for loop
+list7 <- list("a", "b", "c", "d", "e", "f", "g", "h", "i", "j")
+
+for ( i in list7){ 
+  print(paste("The list variable is",i))  
+}
+ 
+#while loop
+i <- 1
+while (i < 6) {
+  print(i)
+  i = i+1
+}
+
+#ex2
+list8 <- list("a", "b", "c", "d", "e", "f", "g", "h", "i", "j")
+list9 <- 1
+
+j <- 1
+while (j < 10)
+  for ( i in list7){ 
+    print(paste("The  variable",j, "is",i))  
+      j = j+1
+}
+ 
+
+
+
+
+
+

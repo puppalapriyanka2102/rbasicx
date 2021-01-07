@@ -1,0 +1,80 @@
+---
+title: "Untitled"
+author: "Priyanka"
+date: "1/4/2021"
+output:  word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Reading data from website https://www.worldometers.info/coronavirus/ 
+
+
+```{r }
+library(tidyverse)
+library(rvest)
+library(dplyr)
+#reading url using read_html
+corona_rul <- read_html("https://www.worldometers.info/coronavirus/")
+
+#reading table from the website 
+corona_file <- html_table(corona_rul)
+
+View(corona_file)
+ 
+```
+```{r }
+corona_file_new <-   corona_file[[1]]
+View(corona_file_new)
+str(corona_file_new)
+```
+```{r }
+#writing the data to csv file
+write.table(corona_file_new, file = "corona_file_new.csv",
+            sep = ",",
+            row.names = FALSE)
+```
+```{r }
+corona_data <- data.frame(corona_file_new[-1:-8,])
+head(corona_data)
+View(corona_data)
+```
+```{r }
+#chaning colnmaes by using rename
+
+corona_data_updated <- corona_data  %>% 
+  rename(S.No. ="X."  , Country_Other = "Country.Other", 
+    Serious_Critical  = "Serious.Critical", 
+         Tot_Cases_1M_pop = "Tot.Cases.1M.pop", 
+         Deaths_1M_pop = "Deaths.1M.pop", 
+         Tests_1M_pop  ="Tests.1M.pop" ,
+        X1_Caseevery_X_ppl   = "X1.Caseevery.X.ppl", 
+         X1_Deathevery_X_ppl  = "X1.Deathevery.X.ppl",
+        X1_Testevery_X_ppl  = "X1.Testevery.X.ppl", )
+
+
+head(corona_data_updated)
+View(corona_data_updated)
+```
+```{r }
+#deleteing the columns -- 
+
+#corona_data %>% select(-NewCases,-NewDeaths,-NewRecovered )
+#View(corona_data_updated)
+```
+```{r }
+#2nd method starts_with() to remove colums
+
+corona_data_updated <-  corona_data %>% select(-starts_with("New"))
+head(corona_data_updated)
+View(corona_data_updated)
+```
+```{r }
+summary(corona_data_updated)
+sum(is.na(corona_data_updated))
+ 
+
+```
+ 

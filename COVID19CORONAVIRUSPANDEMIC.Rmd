@@ -1,0 +1,515 @@
+---
+title: "Untitled"
+author: "Priyanka"
+date: "1/4/2021"
+output:
+  pdf_document: default
+  html_document: default
+---
+ 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Reading data from website https://www.worldometers.info/coronavirus/ 
+
+
+```{r }
+ # 
+library(tidyverse)
+library(rvest)
+library(dplyr)
+#reading url using read_html
+corona_rul <- read_html("https://www.worldometers.info/coronavirus/")
+
+#reading table from the website 
+corona_file <- html_table(corona_rul)
+
+View(corona_file)
+ 
+```
+```{r }
+corona_file_new <-   corona_file[[1]]
+#View(corona_file_new)
+str(corona_file_new)
+```
+```{r }
+#writing the data to csv file
+write.table(corona_file_new, file = "corona_file.csv",
+            sep = ",",
+            row.names = FALSE)
+
+
+
+
+```
+```{r }
+corona_file_new <- read.csv("C:/R_DS/corona_file.csv")
+corona_data <- data.frame(corona_file_new[-1:-8,]) 
+head(corona_data)
+#View(corona_data)
+
+```
+```{r}
+
+corona_data <- data.frame(corona_file_new[ , -1 ]) 
+ corona_data <- data.frame(corona_file_new[c(-1:-8,-228 :-236),  ]) 
+
+ #View(corona_data)
+```
+```{r }
+#chaning colnmaes by using rename
+
+corona_data_updated <- corona_data  %>% 
+  rename(S.No. ="X."  , Country_Other = "Country.Other", 
+    Serious_Critical  = "Serious.Critical", 
+         Tot_Cases_1M_pop = "Tot.Cases.1M.pop", 
+         Deaths_1M_pop = "Deaths.1M.pop", 
+         Tests_1M_pop  ="Tests.1M.pop" ,
+        X1_Caseevery_X_ppl   = "X1.Caseevery.X.ppl", 
+         X1_Deathevery_X_ppl  = "X1.Deathevery.X.ppl",
+        X1_Testevery_X_ppl  = "X1.Testevery.X.ppl", )
+
+
+head(corona_data_updated)
+#View(corona_data_updated)
+```
+```{r }
+ 
+#corona_data %>% select(-NewCases,-NewDeaths,-NewRecovered )
+#View(corona_data_updated)
+```
+```{r }
+#2nd method starts_with() to remove colums
+
+corona_data_updated <-  corona_data_updated %>% dplyr:: select(-starts_with("New"))
+
+
+head(corona_data_updated)
+#View(corona_data_updated)
+ 
+```
+```{r}
+library(dplyr)
+#removing commas in the data
+set.seed(1)
+ mysub <- function(x) {
+   gsub(",","",x)
+ }
+
+#APPLYING mysub function to all applicable columns in the dataset
+corona_data_updated[,3:12:15] <- apply(corona_data_updated[,3:12:15],MARGIN=2, FUN= mysub )
+View(corona_data_updated)
+str(corona_data_updated)
+```
+```{r}
+#converting chr type to num  using lapply
+colms <-  c(3:12)
+corona_data_updated[colms]  <- lapply(corona_data_updated[colms], as.numeric) 
+corona_data_updated[14:16]  <- lapply(corona_data_updated[14:16], as.numeric) 
+str(corona_data_updated)
+
+```
+```{r}
+summary(corona_data_updated)
+
+```
+```{r}
+library(tidyverse)
+corona_data_updated <- na.omit(corona_data_updated)
+summary(corona_data_updated)
+#View(corona_data_updated)
+
+corona_data_updated$Continent <- as.factor(corona_data_updated$Continent) 
+str(corona_data_updated$Continent)
+
+data1<-corona_data_updated
+df <-corona_data_updated
+```
+```{r}
+library(forcats)
+library(tidyverse)
+library(ggplot2)
+#Which continent is having the maximum number of cases?
+ 
+ 
+continent_TotalCases <- corona_data_updated %>% mutate(Continent = fct_lump(Continent, n=5 ))  %>% 
+        group_by(Continent) %>% 
+  summarise(TotalCases = max(TotalCases, na.rm=TRUE))%>% arrange(desc(TotalCases))  
+continent_TotalCases
+
+
+
+# #plot
+# continent_TotalCases <- corona_data_updated %>% mutate(Continent = fct_lump(Continent, n=5 ))  %>% 
+#         group_by(Continent) %>% 
+#   summarise(TotalCases=max(TotalCases, na.rm=TRUE)) %>% 
+#   ggplot(aes(x=Continent, y=  TotalCases))+geom_col()
+# 
+
+ 
+```
+```{r}
+
+# Which continent has the least number of deaths?
+
+
+ library(dplyr)
+continent_leastdeaths <- corona_data_updated %>% mutate(Continent = fct_lump(Continent, n=5 ))  %>% 
+        group_by(Continent) %>%   dplyr::summarise(TotalDeaths = min(TotalDeaths, na.rm=TRUE)) %>% arrange(TotalDeaths)  
+continent_leastdeaths
+```
+```{r}
+# What is the current status of China? 
+#There no data for China as it removed in the process of removing NAs 
+#I have taken 3 different countries for this question
+
+library(dplyr)
+# current status of Brazil
+current_status_Brazil <- corona_data_updated   %>%
+  filter(corona_data_updated$Country_Other == "Brazil")  %>%
+         dplyr::summarise(Country_Other, TotalCases=max(TotalCases, na.rm=TRUE), TotalDeaths=max(TotalDeaths, na.rm=TRUE),ActiveCases=max(ActiveCases, na.rm=TRUE),Serious_Critical=max(Serious_Critical, na.rm=TRUE))
+current_status_Brazil
+
+# current status of USA
+current_status_USA <- corona_data_updated   %>%
+  filter(corona_data_updated$Country_Other == "USA")  %>%
+         dplyr::summarise(Country_Other, TotalCases=max(TotalCases, na.rm=TRUE), TotalDeaths=max(TotalDeaths, na.rm=TRUE),ActiveCases=max(ActiveCases, na.rm=TRUE),Serious_Critical=max(Serious_Critical, na.rm=TRUE))
+current_status_USA
+
+# current status of India
+current_status_India <- corona_data_updated   %>%
+  filter(corona_data_updated$Country_Other == "India")  %>%
+         dplyr::summarise(Country_Other, TotalCases=max(TotalCases, na.rm=TRUE), TotalDeaths=max(TotalDeaths, na.rm=TRUE),ActiveCases=max(ActiveCases, na.rm=TRUE),Serious_Critical=max(Serious_Critical, na.rm=TRUE))
+current_status_India
+
+```
+```{r}
+#************** What is the current status of China? 
+#***************** Method-2 using TotalDeaths
+#There no data for China as it removed in the process of removing NAs 
+#I have taken 3 different countries for this question
+#If TotalDeaths is more than the mean of the value the rank allotted  is "1" which indicate its in dangerous situation , if less than mean then rank allotted as "0" which indicates the country comes under safe zone.
+
+library(dplyr)
+TotalDeaths_status <- corona_data_updated   %>% dplyr::summarise(TotalDeaths = mean(TotalDeaths, na.rm=TRUE))
+#TotalDeaths_status
+current_status <- mutate(corona_data_updated, rank = ifelse(corona_data_updated$TotalDeaths >= 13235, "1", "0"))
+current_status$rank <- as.factor(current_status$rank)
+
+current_status_country <- current_status %>% filter(current_status$rank== 1)%>% select(Country_Other,TotalCases, TotalDeaths )  
+
+
+#current_status_country
+final_satus <- function(x){
+  ifelse(x %in% current_status_country$Country_Other, "The country is in **Dangerous situation**", "The country is Safe")
+  }
+#status of different countries
+final_satus("USA")
+final_satus("Ireland")
+final_satus("Germany")
+final_satus("India")
+final_satus("Egypt")
+```
+```{r}
+# Please arrange all data based on the total number of cases per million population?
+ 
+ cases_per_million_population <- corona_data_updated %>% 
+      mutate(corona_data_updated$TotalCases / (corona_data_updated$Population /1000000 )) %>% 
+             arrange(desc(TotalCases))
+
+head(cases_per_million_population)
+#View(cases_per_million_population) 
+ 
+```
+```{r}
+#Which country ranks first based on total number of cases per million population and which country ranks last?
+
+
+#country ranks first based on total number of cases per million population
+cases_per_million_population <- corona_data_updated %>% 
+      mutate(corona_data_updated$TotalCases / (corona_data_updated$Population /1000000 )) %>%
+  select(Country_Other, TotalCases, Population)%>% arrange(corona_data_updated)
+
+ cases_per_rankONE <- cases_per_million_population %>%
+  filter(TotalCases == max(TotalCases) ) %>%
+  arrange(Country_Other) %>%
+  head(10)
+cases_per_rankONE
+
+
+
+#country ranks last based on total number of cases per million population
+ cases_per_rankLAST <- cases_per_million_population %>%
+  filter(TotalCases ==min(TotalCases) ) %>%
+  arrange(Country_Other) %>%
+  head(10)
+cases_per_rankLAST
+```
+```{r}
+corona_new <- current_status %>% select(TotalCases,TotalDeaths,TotalRecovered,rank )
+#head(corona_new)
+
+plot(corona_new$TotalCases,corona_new$TotalDeaths , type="b")
+
+```
+```{r}
+#head(corona_new)
+
+boxplot(TotalDeaths ~ rank, corona_new, xlab = "rank", ylab = "TotalDeaths")
+
+
+```
+```{r}
+hist(corona_new$TotalCases)
+with(corona_new, plot(TotalCases, TotalRecovered))
+
+
+```
+```{r}
+
+# adding title
+with(corona_new,  plot(TotalCases, TotalRecovered))
+title(main = "TotalCases  vs TotalRecovered")
+
+```
+```{r}
+
+# adding colour
+with(corona_new,  plot(TotalCases, TotalRecovered, main = "TotalCases  vs TotalRecovered"))
+with(subset(corona_new, rank == 1), points(TotalCases, TotalRecovered, col = "blue"))
+with(subset(corona_new, rank == 0), points(TotalCases, TotalRecovered, col = "red"))
+
+```
+```{r}
+# Base Plot with Annotation
+ 
+with(corona_new,  plot(TotalCases, TotalRecovered, main = "TotalCases  vs TotalRecovered", type = "n"))
+with(subset(corona_new, rank == 1), points(TotalCases, TotalRecovered, col = "blue"))
+with(subset(corona_new, rank == 0), points(TotalCases, TotalRecovered, col = "red"))
+
+legend("topleft", pch = 1, col = c("blue", "red"), legend = c("1", "0"))
+
+
+```
+```{r}
+# Base Plot with Regression Line
+with(corona_new,  plot(TotalCases, TotalRecovered, main = "TotalCases  vs TotalRecovered",  pch = 20))
+model <- lm(TotalCases ~ TotalRecovered, corona_new)
+abline(model, lwd = 2)
+
+```
+```{r}
+# R base scatter plot: plot()
+x <- corona_new$TotalCases
+y <- corona_new$TotalDeaths
+# Plot with main and axis titles
+# Change point shape (pch = 19) and remove frame.
+plot(x, y, main = "TotalCases  vs TotalRecovered",
+     xlab = "TotalCases", ylab = "TotalRecovered",
+     pch = 5, frame = FALSE)
+```
+```{r}
+# Add regression line
+plot(x, y, main = "TotalCases  vs TotalRecovered",
+     xlab = "TotalCases", ylab = "TotalRecovered",
+     pch = 5, frame = FALSE)
+abline(lm(y ~ x, data = corona_new), col = "blue")
+
+
+```
+```{r}
+
+# Add loess fit
+plot(x, y, main = "TotalCases  vs TotalRecovered",
+     xlab = "TotalCases", ylab = "TotalRecovered",
+     pch = 5, frame = FALSE)
+
+lines(lowess(x, y), col = "blue")
+```
+```{r}
+library(ggplot2)
+#scatterplot(TotalDeaths  ~ TotalCases, data = corona_new)
+scatterplot(TotalDeaths  ~ TotalCases, data = corona_new)
+```
+```{r}
+# Suppress the smoother and frame
+
+scatterplot(TotalDeaths  ~ TotalCases, data = corona_new,
+            grid = TRUE, frame = FALSE)
+scatterplot(TotalDeaths  ~ TotalCases, data = corona_new,
+            grid = FALSE, frame = FALSE)
+
+```
+```{r}
+# smoother = FALSE, 
+# Scatter plot by groups ("cyl")
+library(ggplot2)
+scatterplot(TotalDeaths  ~ TotalCases, data = corona_new,grid = FALSE, frame = FALSE)
+scatterplot(TotalDeaths  ~ TotalCases, data = corona_new,grid = FALSE, frame = TRUE)
+
+```
+```{r}
+
+# Scatter Plot Matrices - R Base Graphs
+# Basic plots:
+
+pairs(corona_new[,1:4], pch = 2)
+
+
+```
+```{r}
+# Show only upper panel:
+pairs(corona_new[,1:4], pch = 19, lower.panel = NULL)
+```
+```{r}
+# Color points by groups (species)
+my_cols <- c("#00AFBB", "#E7B800")  
+pairs(corona_new[,1:4], pch = 2,  cex = 1,
+      col = my_cols[iris$Species],
+      lower.panel=NULL)
+
+```
+```{r}
+# Basic box plots
+# Box plot of one variable
+boxplot(corona_new$TotalRecovered)
+
+```
+```{r}
+
+# Box plots by groups (dose)
+# remove frame
+boxplot(corona_new$TotalDeaths  ~ corona_new$TotalCases, data = corona_new, frame = FALSE)
+```
+```{r}
+# Horizontal box plots
+boxplot(TotalDeaths  ~ TotalCases, data = corona_new,frame = FALSE,
+        horizontal = TRUE)
+
+
+```
+```{r}
+# Notched box plots
+boxplot(TotalDeaths  ~ TotalCases, data = corona_new, frame = FALSE,
+        notch = TRUE)
+
+```
+```{r}
+
+# Change group names
+#boxplot(TotalDeaths  ~ TotalCases, data = corona_new, frame = FALSE, names = c("D0.5", "D1", "D2"))
+
+```
+```{r}
+# Change color
+# Change the color of border using one single color
+boxplot(TotalDeaths  ~ TotalCases, data = corona_new,  frame = FALSE,
+        border = "steelblue")
+
+```
+```{r}
+# Change the color of border.
+#  Use different colors for each group
+boxplot(TotalDeaths  ~ TotalCases, data = corona_new,frame = FALSE,
+        border = c("#999999", "#E69F00", "#56B4E9"))
+
+
+```
+```{r}
+# Change fill color : single color
+boxplot(TotalDeaths  ~ TotalCases, data = corona_new, frame = FALSE,
+        col = "steelblue")
+
+
+```
+```{r}
+# Change group names
+#barplot(corona_new$TotalCases, names.arg = c("A", "B", "C"))
+# Bar plot of one variable
+barplot(corona_new$TotalCases)
+# Horizontal bar plot
+barplot(corona_new$TotalCases, horiz = TRUE)
+
+
+```
+```{r}
+ 
+# Line Plots - R Base Graphs
+plot(x, y, type = "l", lty = 1)
+lines(x, y, type = "l", lty = 1)
+
+```
+```{r}
+#### Plotly
+library(plotly)
+# Scatter plot
+fig <- plot_ly(data = corona_data_updated, x = ~corona_data_updated$TotalCases, y = ~corona_data_updated$TotalRecovered, marker = list(size = 10,
+                             color = 'pink',
+                             line = list(color = 'green',
+                                         width = 1)))
+fig <- fig %>% layout(title = 'Customized Scatter Plot',
+                      yaxis = list(zeroline = FALSE),
+                      xaxis = list(zeroline = FALSE))
+fig
+
+```
+```{r}
+# head(data1)
+fig <- data1 %>%
+  plot_ly(
+    x = ~data1$Tests_1M_pop,
+    y = ~Deaths_1M_pop,
+    size = ~Tests_1M_pop,
+        frame = ~Continent ,
+    text = ~Country_Other,
+    hoverinfo = "text",
+    type = 'scatter',
+    mode = 'markers'
+  )
+
+fig <- fig %>% layout(
+  xaxis = list(
+    type = "log"
+  )
+)
+
+fig
+
+```
+```{r}
+
+#fig <- plot_ly(x = ~data1$TotalCases, y = ~data1$TotalDeaths, z = ~data1$TotalRecovered,data=, type = #Data #Visualisation
+
+fig <- plot_ly(data1, x = ~Tot_Cases_1M_pop, y = ~Continent, name = "TotalCases", 
+               type = 'scatter', mode = "markers", 
+               marker = list(color = "red", opacity = 0.4), size =5)%>% 
+  add_trace(x = ~ActiveCases, y = ~Continent, name = "ActiveCases",
+            type  ='scatter',mode = "markers", marker = list(color = "blue", opacity = 0.4)) %>% 
+  layout(title = "Total Deaths vs Active vs Recovered cases")
+
+fig
+
+```
+```{r}
+# Data Preparation
+labels <- data1$Continent
+values <- data1$Deaths_1M_pop
+# Data Visualization
+fig <- plot_ly(type='pie', labels=labels, values=values, 
+               textinfo='label+percent',
+               insidetextorientation='radial') %>% layout(title = "Total deaths")
+fig
+
+```
+```{r}
+# Data Preparation
+labels <- data1$Continent
+values <- data1$ActiveCases
+
+# Data Visualization
+fig <- plot_ly(type='pie', labels=labels, values=values, 
+               textinfo='label+percent',
+               insidetextorientation='radial') %>% layout(title = "Total ActiveCases")
+fig
+```

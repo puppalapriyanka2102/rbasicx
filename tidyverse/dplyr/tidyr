@@ -1,0 +1,122 @@
+#Read the csv file.
+library(dplyr)
+library(tidyverse)
+library(readr)
+data <- read.csv("Matrix_mQTL.csv",header = TRUE,
+                        sep = "")
+#View(data)
+head(data)
+summary(data)
+str(data)
+
+
+colSums(is.na(data))
+
+
+
+data_df <- data %>% select(Timepoint,SNP, Chr, Pos,CpG )
+head(data_df)
+colSums(is.na(data_df))
+
+
+# select these columns (Timepoint, SNP, 'SNP Chr', 'SNP Pos', CpG, 'CpG Chr', 'CpG Pos')
+library(tidyr)
+#creatin new columns 'SNP Chr', 'SNP Pos',  'CpG Chr', 'CpG Pos'
+data_df$'SNP Chr' <- paste(data_df$SNP, data_df$Chr)
+data_df$'SNP Pos' <- paste(data_df$SNP, data_df$Pos)
+data_df$'CpG Chr' <- paste(data_df$CpG, data_df$Chr)
+data_df$'CpG Pos' <- paste(data_df$CpG, data_df$Pos)
+head(data_df)
+#View(data_df)
+colSums(is.na(data_df))
+
+
+
+#Tell me how many unique SNP do we have?
+
+unique_SNP <- unique(data_df$SNP)
+#unique_SNP   #unique SNP  
+
+length(unique(unique_SNP )) # number of unique SNP 
+
+
+# Tell me how many unique CpG sites do we have? (just check it)
+
+length(unique(data_df$CpG ))
+
+#  How many unique CpG and SNPs combinations are there? (just check it)
+
+df2 <- data_df %>% expand(CpG, SNP)
+length(df2)
+
+
+# How many unique Timepoint, CpG and SNPs combinations are there?  just check it)
+
+df3 <- data_df %>% expand(Timepoint, CpG, SNP,)
+length(df3)
+
+
+# Please change the column names to remove space.
+colnames(data_df)
+
+data_df <- data_df  %>%
+  rename(SNP_Chr ="SNP Chr"  , SNP_Pos = "SNP Pos",
+    CpG_Chr  = "CpG Chr",
+         CpG_Pos = "CpG Pos")
+
+colnames(data_df)
+
+
+
+#data_df  %>% filter(data_df$Timepoint == "Middle")
+
+
+# Split the files based on time points.
+##preparing Timepoint as factor
+
+data_df$Timepoint <- as.factor(data_df$Timepoint)
+str(data_df$Timepoint)
+
+levels(data_df$Timepoint)
+
+
+#Split the files based on time points
+
+Adolescence <- filter(data_df, Timepoint == "Adolescence" )
+Birth <- filter(data_df, Timepoint == "Birth" )
+Childhood <- filter(data_df, Timepoint == "Childhood" )
+Middle <- filter(data_df, Timepoint == "Middle" )
+Pregnancy <- filter(data_df, Timepoint == "Pregnancy" )
+
+# View(Adolescence)
+# View(Birth)
+# View(Childhood)
+# View(Middle)
+# View(Pregnancy)
+
+# Create new csv files for all time points using a function.
+
+#Creating a csv files 
+
+write.table(Adolescence, file = "Adolescence.csv",
+            sep = ",",
+            row.names = FALSE)
+
+
+write.table(Birth, file = "Birth.csv",
+            sep = ",",
+            row.names = FALSE)
+
+write.table(Childhood, file = "Childhood.csv",
+            sep = ",",
+            row.names = FALSE)
+
+write.table(Middle, file = "Middle.csv",
+            sep = ",",
+            row.names = FALSE)
+
+write.table(Pregnancy, file = "Pregnancy.csv",
+            sep = ",",
+            row.names = FALSE)
+
+```
